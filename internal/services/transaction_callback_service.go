@@ -89,7 +89,7 @@ func TransactionCallbackProcessRequest(r *http.Request) map[string]string {
 	}
 
 	payloadString := string(payloadBytes)
-	redis_key := "transaction-callback-api:" + requestData.TranRef
+	redis_key := "tmvh-transaction-callback-api:" + requestData.TranRef
 	ttl := 24 * time.Hour // expires in 1 Hour
 
 	redis_db.ConnectRedis()
