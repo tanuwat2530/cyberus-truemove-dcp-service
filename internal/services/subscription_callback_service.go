@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 
 	// Generate a random UUID (UUID v4)
 	//transaction_id := uuid.New().String()
-
+	redisConnection := os.Getenv("BN_REDIS_URL")
 	res := map[string]string{}
 
 	var payload map[string]interface{}
@@ -104,7 +105,7 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 	redis_key := "tmvh-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
 	ttl := 24 * time.Hour // expires in 1 Hour
 
-	redis_db.ConnectRedis()
+	redis_db.ConnectRedis(redisConnection, "", 0)
 	// // Set key with TTL
 	if err := redis_db.SetWithTTL(redis_key, payloadString, ttl); err != nil {
 		//write to file if Redis problem or forward request to AIS
