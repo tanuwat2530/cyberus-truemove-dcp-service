@@ -28,6 +28,8 @@ func TransactionCallbackProcessRequest(r *http.Request) map[string]string {
 	redisConnection := os.Getenv("BN_REDIS_URL")
 	res := map[string]string{}
 
+	redis_key := ""
+
 	var payload map[string]interface{}
 	errPayload := json.NewDecoder(r.Body).Decode(&payload)
 	if errPayload != nil {
@@ -90,7 +92,15 @@ func TransactionCallbackProcessRequest(r *http.Request) map[string]string {
 	}
 
 	payloadString := string(payloadBytes)
-	redis_key := "tmvh-transaction-callback-api:" + requestData.TranRef
+	if requestData.Operator == "TRUEMOVE" {
+		redis_key = "tmvh-transaction-callback-api:" + requestData.TranRef
+	}
+	if requestData.Operator == "DTAC" {
+		redis_key = "dtac-transaction-callback-api:" + requestData.TranRef
+	}
+	if requestData.Operator == "AIS" {
+		redis_key = "ais-transaction-callback-api:" + requestData.TranRef
+	}
 	ttl := 24 * time.Hour // expires in 1 Hour
 
 	redis_db.ConnectRedis(redisConnection, "", 0)

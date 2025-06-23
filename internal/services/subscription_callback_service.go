@@ -32,6 +32,8 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 	redisConnection := os.Getenv("BN_REDIS_URL")
 	res := map[string]string{}
 
+	redis_key := ""
+
 	var payload map[string]interface{}
 	errPayload := json.NewDecoder(r.Body).Decode(&payload)
 	if errPayload != nil {
@@ -102,7 +104,16 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 	}
 
 	payloadString := string(payloadBytes)
-	redis_key := "tmvh-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+
+	if requestData.Operator == "TRUEMOVE" {
+		redis_key = "tmvh-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+	}
+	if requestData.Operator == "DTAC" {
+		redis_key = "dtac-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+	}
+	if requestData.Operator == "AIS" {
+		redis_key = "ais-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+	}
 	ttl := 24 * time.Hour // expires in 1 Hour
 
 	redis_db.ConnectRedis(redisConnection, "", 0)
