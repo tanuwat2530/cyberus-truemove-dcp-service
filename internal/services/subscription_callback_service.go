@@ -105,15 +105,30 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 
 	payloadString := string(payloadBytes)
 
-	if requestData.Operator == "TRUEMOVE" {
-		redis_key = "tmvh-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+	if requestData.Action == "REGISTER" {
+		if requestData.Operator == "TRUEMOVE" {
+			redis_key = "tmvh-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+		}
+		if requestData.Operator == "DTAC" {
+			redis_key = "dtac-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+		}
+		if requestData.Operator == "AIS" {
+			redis_key = "ais-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+		}
 	}
-	if requestData.Operator == "DTAC" {
-		redis_key = "dtac-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
+
+	if requestData.Action == "CANCEL" {
+		if requestData.Operator == "TRUEMOVE" {
+			redis_key = "tmvh-subscription-callback-api:" + requestData.Shortcode + ":" + requestData.Operator
+		}
+		if requestData.Operator == "DTAC" {
+			redis_key = "dtac-subscription-callback-api:" + requestData.Shortcode + ":" + requestData.Operator
+		}
+		if requestData.Operator == "AIS" {
+			redis_key = "ais-subscription-callback-api:" + requestData.Shortcode + ":" + requestData.Operator
+		}
 	}
-	if requestData.Operator == "AIS" {
-		redis_key = "ais-subscription-callback-api:" + requestData.Media + ":" + requestData.RefId
-	}
+
 	ttl := 24 * time.Hour // expires in 1 Hour
 
 	redis_db.ConnectRedis(redisConnection, "", 0)
@@ -133,6 +148,9 @@ func SubscriptionCallbackProcessRequest(r *http.Request) map[string]string {
 	//fmt.Println("##### Process completed #####")
 	res["code"] = "200"
 	res["desc"] = "Success"
+	res["action"] = requestData.Action
+	res["short-code"] = requestData.Shortcode
+	res["operator"] = requestData.Operator
 	res["ref-id"] = requestData.RefId
 	res["tran-ref"] = requestData.TranRef
 	res["media"] = requestData.Media
